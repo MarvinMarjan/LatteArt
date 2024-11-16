@@ -24,7 +24,7 @@ public class Brush(float size, Color color) : IUpdateable, IDrawable
     public void Update()
     {
         LastPosition = Position;
-        Position = App.MainWindow!.WorldMousePosition;
+        Position = App.MainWindow.WorldMousePosition;
     }
 
 
@@ -32,22 +32,20 @@ public class Brush(float size, Color color) : IUpdateable, IDrawable
     {
         float length = CalculateLineLength(LastPosition, Position);
         float angle = CalculateLineAngle(LastPosition, Position);
-        
-        RectangleShape line = new(new Vector2f(length, Size))
-        {
-            Origin = new(0, Size / 2),
-            Rotation = angle,
-            FillColor = PaintColor
-        };
+
+        RectangleShape line = new(new Vector2f(length, Size));
+        line.Origin = new(0, Size / 2);
+        line.Rotation = angle;
         line.Position = LastPosition;
+        line.FillColor = PaintColor;
         
         target.Draw(line);
     }
 
 
     private static float CalculateLineLength(Vector2f start, Vector2f end)
-        => (float)Math.Sqrt(Math.Pow(end.X - start.X, 2) + Math.Pow(end.Y - start.Y, 2));
+        => MathF.Sqrt(MathF.Pow(end.X - start.X, 2f) + MathF.Pow(end.Y - start.Y, 2f));
     
     private static float CalculateLineAngle(Vector2f start, Vector2f end)
-        => (float)(Math.Atan2(end.Y - start.Y, end.X - start.X) * 180.0 / Math.PI);
+        => MathF.Atan2(end.Y - start.Y, end.X - start.X) * 180f / MathF.PI;
 }

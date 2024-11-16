@@ -29,15 +29,18 @@ public readonly struct BoundLimitCollisions
 
 public class CanvasView
 {
-    public Window Window { get; private set; }
+    public Window Window { get; set; }
+    public View View { get; set; }
+
+    public Vector2f WorldMousePosition => Window.MapPixelToCoords(Window.MousePosition, View);
     
     // how much the mouse position changed since the last frame update
-    public Vector2f WorldMousePositionDelta => _oldWorldMousePosition - Window.WorldMousePosition;
+    public Vector2f WorldMousePositionDelta => WorldMousePosition - _oldWorldMousePosition;
     private Vector2f _oldWorldMousePosition;
 
     public float MouseScrollDelta { get; set; }
 
-    public FloatRect Bounds => Window.View.ViewToRect();
+    public FloatRect Bounds => View.ViewToRect();
     public FloatRect? BoundsLimit { get; set; }
     
     public float ZoomOutFactor { get; private set; } = 1.15f; 
@@ -46,15 +49,16 @@ public class CanvasView
     public float MaxZoomOut { get; private set; } = 2300f;
     public float MaxZoomIn { get; private set; } = 500f;
     
-    public bool IsAtMaxZoom => Window.View.Size.X >= MaxZoomOut;
-    public bool IsAtMinZoom => Window.View.Size.Y <= MaxZoomIn;
+    public bool IsAtMaxZoom => View.Size.X >= MaxZoomOut;
+    public bool IsAtMinZoom => View.Size.Y <= MaxZoomIn;
     
     public bool IsGrabbingView => Window.HasFocus() && Mouse.IsButtonPressed(Mouse.Button.Right);
     
     
-    public CanvasView(Window window)
+    public CanvasView(Window window, View? view = null)
     {
         Window = window;
+        View = view ?? Window.GetView();
         
         Window.MouseWheelScrolled += (_, args) => MouseScrollDelta = args.Delta;
     }
@@ -68,14 +72,14 @@ public class CanvasView
         if (MouseScrollDelta != 0f && (MouseScrollDelta > 0 ? !IsAtMinZoom : !IsAtMaxZoom))
         {
             float zoom = MouseScrollDelta > 0 ? ZoomInFactor : ZoomOutFactor;
-            Window.View.Zoom(zoom);
+            View.Zoom(zoom);
         }
 
         CheckBoundsLimits();
         
         MouseScrollDelta = 0f;
         
-        _oldWorldMousePosition = Window.WorldMousePosition;
+        _oldWorldMousePosition = WorldMousePosition;
     }
 
     private void ProcessViewGrabMovement()
@@ -93,7 +97,7 @@ public class CanvasView
                 delta.Y = 0;
         }
             
-        Window.View.Move(delta);
+        View.Move(-delta);
     }
     
     private void CheckBoundsLimits()
@@ -108,27 +112,27 @@ public class CanvasView
 
         if (collisions.LeftRightCollision())
         {
-            Window.View.Center = Window.View.Center with { X = BoundsLimit.Value.Position.X + BoundsLimit.Value.Size.X / 2f };
+            View.Center = View.Center with { X = BoundsLimit.Value.Position.X + BoundsLimit.Value.Size.X / 2f };
             horizontalLocked = true;
         }
 
         if (collisions.TopBottomCollision())
         {
-            Window.View.Center = Window.View.Center with { Y = BoundsLimit.Value.Position.Y + BoundsLimit.Value.Size.Y / 2f };
+            View.Center = View.Center with { Y = BoundsLimit.Value.Position.Y + BoundsLimit.Value.Size.Y / 2f };
             verticalLocked = true;
         }
         
         if (collisions.AtLeft && !horizontalLocked)
-            Window.View.MoveToPosition(new(BoundsLimit.Value.Position.X, Bounds.Position.Y));
+            View.MoveToPosition(new(BoundsLimit.Value.Position.X, Bounds.Position.Y));
         
         else if (collisions.AtRight && !horizontalLocked)
-            Window.View.MoveToPosition(new(BoundsLimit.Value.Position.X + BoundsLimit.Value.Width - Bounds.Width, Bounds.Position.Y));
+            View.MoveToPosition(new(BoundsLimit.Value.Position.X + BoundsLimit.Value.Width - Bounds.Width, Bounds.Position.Y));
         
         if (collisions.AtTop && !verticalLocked)
-            Window.View.MoveToPosition(new(Bounds.Position.X, BoundsLimit.Value.Position.Y));
+            View.MoveToPosition(new(Bounds.Position.X, BoundsLimit.Value.Position.Y));
         
         else if (collisions.AtBottom && !verticalLocked)
-            Window.View.MoveToPosition(new(Bounds.Position.X, BoundsLimit.Value.Position.Y + BoundsLimit.Value.Height - Bounds.Height));
+            View.MoveToPosition(new(Bounds.Position.X, BoundsLimit.Value.Position.Y + BoundsLimit.Value.Height - Bounds.Height));
         
     }
 
