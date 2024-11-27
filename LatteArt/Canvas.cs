@@ -1,8 +1,8 @@
 using SFML.Window;
 using SFML.Graphics;
 
-using Latte;
-using Latte.Application;
+using Latte.Core;
+using Latte.Core.Application;
 
 
 namespace LatteArt;
@@ -13,9 +13,12 @@ public class Canvas : RenderTexture, IUpdateable, IDrawable
     public Brush Brush { get; }
     
     public Color Color { get; set; }
+
+    public bool Dragging => !App.IsMouseOverAnyElement() && Mouse.IsButtonPressed(Mouse.Button.Right); 
+    public bool Painting { get; set; } 
     
     
-    public Canvas(Color color) : base(App.MainWindow.Size.X, App.MainWindow.Size.Y, new ContextSettings
+    public Canvas(Color color) : base(App.Window.Size.X, App.Window.Size.Y, new ContextSettings
     {
         AntialiasingLevel = 16
     })
@@ -32,16 +35,22 @@ public class Canvas : RenderTexture, IUpdateable, IDrawable
     public void Update()
     {
         Brush.Update();
+        
+        if (!Painting && !App.IsMouseOverAnyElement() && Mouse.IsButtonPressed(Mouse.Button.Left))
+            Painting = true;
+        
+        if (Painting && !Mouse.IsButtonPressed(Mouse.Button.Left))
+            Painting = false;
     }
 
 
-    public void Draw() => Draw(App.MainWindow);
+    public void Draw() => Draw(App.Window);
     
     public void Draw(RenderTarget target)
     {
         SetActive(true);
         
-        if (Brush.ShouldDraw)
+        if (Painting)
             Brush.Draw(this);
         
         Display();

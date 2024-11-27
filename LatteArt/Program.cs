@@ -1,10 +1,7 @@
 ﻿using SFML.Window;
 using SFML.Graphics;
 
-using Latte;
-using Latte.Application;
-using Latte.Elements;
-using Latte.Elements.Primitives.Shapes;
+using Latte.Core.Application;
 
 
 namespace LatteArt;
@@ -17,32 +14,18 @@ class Program
         App.Init(VideoMode.DesktopMode, "Latte Art", new("../../../../resources/Itim-Regular.ttf"),
             settings: new()
         {
-            AntialiasingLevel = 4
+            AntialiasingLevel = 8
         });
-        
-        App.MainWindow.SetVerticalSyncEnabled(false);
-        
-        DynamicWindowElement window = new("This is a window", new(100, 100), new(300, 380));
 
-        new RectangleElement(window, new(), new(100, 100))
-        {
-            Color = Color.Red,
-            
-            Alignment = AlignmentType.VerticalCenter | AlignmentType.Right,
-            AlignmentMargin = new(40, 10)
-        };
-        
-        App.Elements.Add(window);
-        
         Canvas canvas = new(Color.White);
-        CanvasView view = new(App.MainWindow, App.MainView)
+        CanvasView view = new(App.Window, App.MainView, canvas)
         {
             BoundsLimit = new(-canvas.Size.X / 4f, -canvas.Size.Y / 4f, canvas.Size.X * 1.5f, canvas.Size.Y * 1.5f)
         };
 
-        while (App.MainWindow.IsOpen)
+        while (App.Window.IsOpen)
         {
-            App.MainWindow.Clear();
+            App.Window.Clear(new(100, 100, 100));
             
             canvas.Update();
             canvas.Draw();
@@ -52,7 +35,7 @@ class Program
             App.Update();
             App.Draw();
             
-            App.MainWindow.Display();
+            App.Window.Display();
         }
     }
 }

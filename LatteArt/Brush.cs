@@ -1,9 +1,8 @@
-using SFML.System;
-using SFML.Window;
 using SFML.Graphics;
 
-using Latte;
-using Latte.Application;
+using Latte.Core;
+using Latte.Core.Application;
+using Latte.Core.Type;
 
 
 namespace LatteArt;
@@ -11,20 +10,18 @@ namespace LatteArt;
 
 public class Brush(float size, Color color) : IUpdateable, IDrawable
 {
-    public Vector2f Position { get; private set;  }
-    public Vector2f LastPosition { get; private set; }
+    public Vec2f Position { get; private set; } = new();
+    public Vec2f LastPosition { get; private set; } = new();
 
     public float Size { get; set; } = size;
 
-    public Color PaintColor { get; set; } = color;
-
-    public static bool ShouldDraw => Mouse.IsButtonPressed(Mouse.Button.Left);
-
+    public Color PaintColor { get; set; } = color;  
+    
 
     public void Update()
     {
         LastPosition = Position;
-        Position = App.MainWindow.WorldMousePosition;
+        Position = App.Window.WorldMousePosition;
     }
 
 
@@ -33,7 +30,7 @@ public class Brush(float size, Color color) : IUpdateable, IDrawable
         float length = CalculateLineLength(LastPosition, Position);
         float angle = CalculateLineAngle(LastPosition, Position);
 
-        RectangleShape line = new(new Vector2f(length, Size));
+        RectangleShape line = new(new Vec2f(length, Size));
         line.Origin = new(0, Size / 2);
         line.Rotation = angle;
         line.Position = LastPosition;
@@ -43,9 +40,9 @@ public class Brush(float size, Color color) : IUpdateable, IDrawable
     }
 
 
-    private static float CalculateLineLength(Vector2f start, Vector2f end)
+    private static float CalculateLineLength(Vec2f start, Vec2f end)
         => MathF.Sqrt(MathF.Pow(end.X - start.X, 2f) + MathF.Pow(end.Y - start.Y, 2f));
     
-    private static float CalculateLineAngle(Vector2f start, Vector2f end)
+    private static float CalculateLineAngle(Vec2f start, Vec2f end)
         => MathF.Atan2(end.Y - start.Y, end.X - start.X) * 180f / MathF.PI;
 }

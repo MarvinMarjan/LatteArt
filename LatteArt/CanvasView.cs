@@ -1,11 +1,8 @@
 using SFML.System;
-using SFML.Window;
 using SFML.Graphics;
 
-using Latte;
 
-
-using Window = Latte.Window;
+using Window = Latte.Core.Window;
 
 
 namespace LatteArt;
@@ -31,6 +28,8 @@ public class CanvasView
 {
     public Window Window { get; set; }
     public View View { get; set; }
+    
+    public Canvas Canvas { get; set; }
 
     public Vector2f WorldMousePosition => Window.MapPixelToCoords(Window.MousePosition, View);
     
@@ -52,13 +51,12 @@ public class CanvasView
     public bool IsAtMaxZoom => View.Size.X >= MaxZoomOut;
     public bool IsAtMinZoom => View.Size.Y <= MaxZoomIn;
     
-    public bool IsGrabbingView => Window.HasFocus() && Mouse.IsButtonPressed(Mouse.Button.Right);
     
-    
-    public CanvasView(Window window, View? view = null)
+    public CanvasView(Window window, View view, Canvas canvas)
     {
         Window = window;
-        View = view ?? Window.GetView();
+        View = view;
+        Canvas = canvas;
         
         Window.MouseWheelScrolled += (_, args) => MouseScrollDelta = args.Delta;
     }
@@ -66,7 +64,7 @@ public class CanvasView
 
     public void Update()
     {
-        if (IsGrabbingView)
+        if (Canvas.Dragging)
             ProcessViewGrabMovement();
         
         if (MouseScrollDelta != 0f && (MouseScrollDelta > 0 ? !IsAtMinZoom : !IsAtMaxZoom))
